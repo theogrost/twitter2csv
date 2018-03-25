@@ -32,6 +32,9 @@
   },
   "build": {
     "appId": "com.oskarkosch.twitter2csv",
+    "directories": {
+      "output": "release"
+    },
     "win": {
       "target": {
         "target": "portable",
