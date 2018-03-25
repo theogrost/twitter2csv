@@ -1,0 +1,19 @@
+.container.fixed {
+  position:fixed;
+  bottom:0px;
+  left:15px;
+}
+
+* {
+  /*font-family:'ABeeZee';*/
+  font-family:'Alegreya Sans';
+}
+
+#searchPreview th, #searchPreview td {
+  padding:12px 0px;
+}
+
+#save_info {
+  background-color:white;
+}
+

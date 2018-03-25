@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>twitter2csv</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=ABeeZee">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya+Sans">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Allerta">
+    <link rel="stylesheet" href="assets/css/Contact-Form-Clean.css">
+    <link rel="stylesheet" href="assets/css/Highlight-Clean.css">
+    <link rel="stylesheet" href="assets/css/Social-Icons.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <div>
+        <div class="container" style="padding:1rem 15px;">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 style="font-family:Allerta, sans-serif;font-size:36px;">KrDZIo3001Aw - Audyt marketingowy</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <form method="post" id="authform">
+                        <h2 class="text-center">dane API</h2>
+                        <div class="form-group"><input class="form-control" type="text" name="api_key" placeholder="api key" id="key"></div>
+                        <div class="form-group"><input class="form-control" type="text" name="api_secret" placeholder="api secret" id="secret"></div>
+                        <div class="form-group d-flex justify-content-start align-items-center"><button class="btn btn-primary" type="submit" id="auth">Autentyfikacja</button>
+                            <p id="auth_info" style="margin:0 0 0 15px;"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 align-items-end">
+                    <form class="d-flex flex-column" method="post" id="searchform" style="height:100%;">
+                        <h2 class="text-center">Szukaj</h2>
+                        <div class="form-group"><input class="form-control" type="text" name="name" placeholder="# dla hashtagów, @ dla uzytkowników" id="searchterm"></div>
+                        <div class="d-flex flex-row"><input class="form-control" type="text" value="en" placeholder="język, np. en, pl, fr..." id="searchlang" style="width:45%;"><input class="form-control ml-auto" type="number" value="100" placeholder="liczba tweetów" min="1" max="100"
+                                id="searchcount" style="width:45%;"></div>
+                        <div class="form-group d-flex justify-content-start align-items-center mt-auto"><button class="btn btn-primary" type="submit">Szukaj</button>
+                            <p id="search_info" style="margin:0 0 0 15px;"></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div></div>
+    <div>
+        <div class="container no-gutter">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table" id="searchPreview">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tekst</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="container fixed-bottom">
+            <div class="row">
+                <div class="col-auto col-md-auto d-flex justify-content-end align-items-center ml-auto">
+                    <p id="save_info" style="padding:0 20px;"></p>
+                    <div class="btn-group" role="group" style="margin:0 0 1rem 0;"><button class="btn btn-primary" type="button" id="savecsv">zapisz jako CSV</button><button class="btn btn-primary" type="button" id="savejson" style="margin:0 0 0 1em;">zapisz jako JSON</button></div>
+                </div>
+            </div>
+        </div>
+    </div><script>
+    const electron = require('electron');
+    const {ipcRenderer} = electron;
+    var auth = document.querySelector('#authform');
+    var search = document.querySelector('#searchform');
+    var saveCsv = document.querySelector('#savecsv');
+    var saveJson = document.querySelector('#savejson');
+    var connected = false;
+    auth.addEventListener('submit', authenticateTwitterApi);
+    search.addEventListener('submit', searchTwitter);
+    saveCsv.addEventListener('click', saveCsvFile);
+    saveJson.addEventListener('click', saveJsonFile);
+    ipcRenderer.on('add:text',function(e, sel, text){
+        document.querySelector(sel).innerHTML = text;
+        //alert(text);
+    });
+    ipcRenderer.on('preview:update',function(e, tweets){
+        document.querySelector('#searchPreview tbody').innerHTML = '';
+        tweets.statuses.forEach(addTweet);
+    });
+    
+    function addTweet(tweet) {
+        row = document.createElement('tr');
+        date = document.createElement('td');
+        date.innerHTML = tweet.created_at;
+        text = document.createElement('td');
+        text.innerHTML = tweet.text;
+        row.appendChild(date);
+        row.appendChild(text);
+        document.querySelector('#searchPreview tbody').appendChild(row);
+    }
+    
+    function authenticateTwitterApi(e) {
+        e.preventDefault();
+        var key = document.querySelector('#key').value;
+        var secret = document.querySelector('#secret').value;
+        ipcRenderer.send('app:authenticate', key, secret);
+    }
+    
+    function searchTwitter(e) {
+        e.preventDefault();
+        var searchterm = document.querySelector('#searchterm').value;
+        var lang = document.querySelector('#searchlang').value;
+        var count = document.querySelector('#searchcount').value;
+        //document.querySelector('#search_info').innerHTML = searchterm;
+        ipcRenderer.send('app:search', searchterm, lang, count);
+    }
+    function saveCsvFile(e) {
+        ipcRenderer.send('app:saveCsv');
+    }
+    function saveJsonFile(e) {
+        ipcRenderer.send('app:saveJson');
+    }
+</script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/openExternal.js"></script>
+</body>
+
+</html>
